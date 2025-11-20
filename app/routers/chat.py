@@ -71,8 +71,6 @@ async def delete_chat(
     db: Session = Depends(get_db),
 ):
     """Удалить чат пользователя (требует авторизацию)"""
-    # from app.model.models import Chat, Message
-
     chat = get_chat_by_user(db, current_user.id)
 
     if not chat:

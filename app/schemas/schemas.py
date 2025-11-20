@@ -52,9 +52,15 @@ class FileResponse(BaseModel):
     filename: str
     original_filename: str
     file_size: int
+    mime_type: str
     status: str
     created_at: datetime
     processed_at: Optional[datetime]
+    processed_file_path: Optional[str] = None
+    session_id: Optional[str] = None
+
+    class Config:
+        from_attributes = True
 
 
 class FileProcess(BaseModel):

@@ -143,3 +143,95 @@ def get_chat_by_user(db: Session, user_id: int):
     from app.model.models import Chat
 
     return db.query(Chat).filter(Chat.user_id == user_id).first()
+
+
+def create_file(
+    db: Session,
+    filename: str,
+    original_filename: str,
+    file_path: str,
+    file_size: int,
+    mime_type: str,
+    user_id: int = None,
+    session_id: str = None,
+):
+    """Создать запись о файле в БД"""
+    from app.model.models import File
+
+    db_file = File(
+        filename=filename,
+        original_filename=original_filename,
+        file_path=file_path,
+        file_size=file_size,
+        mime_type=mime_type,
+        status="uploaded",
+        user_id=user_id,
+        session_id=session_id,
+    )
+    db.add(db_file)
+    db.commit()
+    db.refresh(db_file)
+    return db_file
+
+
+def get_file_by_id(db: Session, file_id: int):
+    """Получить файл по ID"""
+    from app.model.models import File
+
+    return db.query(File).filter(File.id == file_id).first()
+
+
+def get_files_by_user(db: Session, user_id: int):
+    """Получить все файлы пользователя"""
+    from app.model.models import File
+
+    return db.query(File).filter(File.user_id == user_id).order_by(File.created_at.desc()).all()
+
+
+def get_files_by_session(db: Session, session_id: str):
+    """Получить все файлы сессии (для неавторизованных)"""
+    from app.model.models import File
+
+    return db.query(File).filter(File.session_id == session_id).order_by(File.created_at.desc()).all()
+
+
+def update_file_status(db: Session, file_id: int, status: str, processed_file_path: str = None):
+    """Обновить статус файла"""
+    from datetime import datetime
+
+    from app.model.models import File
+
+    file = db.query(File).filter(File.id == file_id).first()
+    if file:
+        file.status = status
+        if processed_file_path:
+            file.processed_file_path = processed_file_path
+        if status == "processed":
+            file.processed_at = datetime.utcnow()
+        db.commit()
+        db.refresh(file)
+    return file
+
+
+def delete_file_record(db: Session, file_id: int):
+    """Удалить запись о файле из БД"""
+    from app.model.models import File
+
+    file = db.query(File).filter(File.id == file_id).first()
+    if file:
+        db.delete(file)
+        db.commit()
+    return file
+
+
+def update_file_user_id(db: Session, file_id: int, user_id: int):
+    """Обновить user_id файла (например, когда неавторизованный пользователь регистрируется)"""
+    from app.model.models import File
+
+    file = db.query(File).filter(File.id == file_id).first()
+    if file:
+        file.user_id = user_id
+        file.session_id = None  # Убираем session_id, так как теперь есть user_id
+        db.commit()
+        db.refresh(file)
+    return file
