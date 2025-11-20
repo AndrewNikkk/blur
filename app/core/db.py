@@ -49,3 +49,57 @@ def authenticate_user(db: Session, login: str, password: str):
     if not user or not verify_password(password, user.hashed_password):
         return False
     return user
+
+
+def update_user_refresh_token(db: Session, user_id: int, refresh_token: str):
+    from app.model.models import User
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user.refresh_token = refresh_token
+        db.commit()
+        db.refresh(user)
+    return user
+
+
+def set_reset_token(db: Session, login: str, reset_token: str, expires_at):
+    # from app.model.models import User
+
+    user = get_user_by_login(db, login)
+    if user:
+        user.reset_token = reset_token
+        user.reset_token_expires = expires_at
+        db.commit()
+        db.refresh(user)
+    return user
+
+
+def get_user_by_reset_token(db: Session, reset_token: str):
+    from datetime import datetime
+
+    from app.model.models import User
+
+    user = db.query(User).filter(User.reset_token == reset_token).first()
+    if user and user.reset_token_expires and user.reset_token_expires > datetime.utcnow():
+        return user
+    return None
+
+
+def get_user_by_refresh_token(db: Session, refresh_token: str):
+    from app.model.models import User
+
+    return db.query(User).filter(User.refresh_token == refresh_token).first()
+
+
+def update_user_password(db: Session, user_id: int, new_password: str):
+    from app.core.auth import get_password_hash
+    from app.model.models import User
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        user.hashed_password = get_password_hash(new_password)
+        user.reset_token = None
+        user.reset_token_expires = None
+        db.commit()
+        db.refresh(user)
+    return user
