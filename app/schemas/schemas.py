@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -41,21 +42,62 @@ class PasswordResetConfirm(BaseModel):
     new_password: str = Field(..., min_length=8, example="newpassword123")
 
 
-# class FileUpload(BaseModel):
-#     filename: str
-#     size: int
+class FileUpload(BaseModel):
+    filename: str
+    size: int
 
-# class FileResponse(BaseModel):
-#     id: int
-#     filename: str
-#     original_filename: str
-#     file_size: int
-#     status: str
-#     created_at: datetime
-#     processed_at: Optional[datetime]
 
-# class FileProcess(BaseModel):
-#     file_id: int
+class FileResponse(BaseModel):
+    id: int
+    filename: str
+    original_filename: str
+    file_size: int
+    status: str
+    created_at: datetime
+    processed_at: Optional[datetime]
 
-# class FileEdit(BaseModel):
-#     content: dict
+
+class FileProcess(BaseModel):
+    file_id: int
+
+
+class FileEdit(BaseModel):
+    content: dict
+
+
+class PasswordChange(BaseModel):
+    old_password: str
+    new_password: str = Field(..., min_length=8)
+
+
+class MessageCreate(BaseModel):
+    content: str
+
+
+class MessageResponse(BaseModel):
+    id: int
+    content: str
+    role: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ChatResponse(BaseModel):
+    id: int
+    user_id: int | None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ChatWithMessages(BaseModel):
+    id: int
+    user_id: int | None
+    created_at: datetime
+    messages: list[MessageResponse]
+
+    class Config:
+        from_attributes = True

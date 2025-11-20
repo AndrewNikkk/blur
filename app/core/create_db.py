@@ -1,7 +1,7 @@
 from app.core.db import Base, engine
 
 
-# from app.model.models import User
+# from app.model.models import Chat, File, Message, User
 
 
 def init_db():

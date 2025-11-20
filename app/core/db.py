@@ -103,3 +103,43 @@ def update_user_password(db: Session, user_id: int, new_password: str):
         db.commit()
         db.refresh(user)
     return user
+
+
+def get_or_create_chat(db: Session, user_id: int):
+    """Получить или создать чат для пользователя"""
+    from app.model.models import Chat
+
+    chat = db.query(Chat).filter(Chat.user_id == user_id).first()
+
+    if not chat:
+        chat = Chat(user_id=user_id)
+        db.add(chat)
+        db.commit()
+        db.refresh(chat)
+
+    return chat
+
+
+def create_message(db: Session, chat_id: int, content: str, role: str = "user"):
+    """Создать сообщение в чате"""
+    from app.model.models import Message
+
+    message = Message(chat_id=chat_id, content=content, role=role)
+    db.add(message)
+    db.commit()
+    db.refresh(message)
+    return message
+
+
+def get_messages_by_chat(db: Session, chat_id: int):
+    """Получить все сообщения чата"""
+    from app.model.models import Message
+
+    return db.query(Message).filter(Message.chat_id == chat_id).order_by(Message.created_at).all()
+
+
+def get_chat_by_user(db: Session, user_id: int):
+    """Получить чат пользователя"""
+    from app.model.models import Chat
+
+    return db.query(Chat).filter(Chat.user_id == user_id).first()

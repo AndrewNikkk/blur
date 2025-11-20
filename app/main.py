@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.create_db import init_db
-from app.routers import auth
+from app.routers import auth, chat
 
 
 app = FastAPI()
@@ -22,6 +22,10 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+# app.include_router(files.router)
+# app.include_router(profile.router)
+# app.include_router(settings.router)
+app.include_router(chat.router)
 
 
 @app.get("/")
