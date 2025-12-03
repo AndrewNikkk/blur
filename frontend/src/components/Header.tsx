@@ -3,17 +3,23 @@ import { Link } from 'react-router-dom';
 import './Header.css';
 import logoImage from '../assets/Logo.svg';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+  showLoginButton?: boolean;
+}
+
+export const Header: React.FC<HeaderProps> = ({ showLoginButton = true }) => {
   return (
     <header className="header">
       <div className="header-content">
-        <div className="header-logo">
+        <Link to="/" className="header-logo">
           <img src={logoImage} alt="Logo" className="header-logo-icon" />
           <span className="header-logo-text">Blur</span>
-        </div>
-        <Link to="/login" className="header-login-btn">
-          Войти
         </Link>
+        {showLoginButton && (
+          <Link to="/login" className="header-login-btn">
+            Войти
+          </Link>
+        )}
       </div>
     </header>
   );
