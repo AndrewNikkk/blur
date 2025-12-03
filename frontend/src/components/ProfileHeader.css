@@ -23,6 +23,10 @@
     flex-grow: 0;
   }
   
+  .profile-header-content.settings-page-header .profile-header-buttons {
+    margin-left: auto;
+  }
+  
   .profile-header-logo {
     display: flex;
     align-items: center;
