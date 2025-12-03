@@ -24,7 +24,7 @@ from app.schemas.schemas import FileResponse
 
 
 router = APIRouter(prefix="/files", tags=["files"])
-security = HTTPBearer(auto_error=False)  # auto_error=False для опциональной авторизации
+security = HTTPBearer(auto_error=False)
 
 
 def get_current_user_optional(
@@ -180,6 +180,51 @@ async def process_file_endpoint(
         raise
     except Exception as e:
         update_file_status(db, file_id, "uploaded")  # Откатываем статус при ошибке
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error processing file: {str(e)}"
+        )
+
+
+@router.post("/{file_id}/edit", response_model=FileResponse)
+async def edit_file_endpoint(
+    file_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_optional),
+):
+    """Обработать файл"""
+    file_record = get_file_by_id(db, file_id)
+    file_status = file_record.status
+
+    if not file_record:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found")
+
+    if current_user:
+        if file_record.user_id != current_user.id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
+    if file_record.status == "uploaded":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File not processed. Current status: {file_status}",
+        )
+
+    update_file_status(db, file_id, "processing")
+
+    try:
+        processed_path = process_file(file_record.file_path)
+
+        if not processed_path:
+            update_file_status(db, file_id, file_status)  # Откатываем статус
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to process file")
+
+        updated_file = update_file_status(db, file_id, "edited", processed_path)
+
+        return updated_file
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        update_file_status(db, file_id, file_status)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error processing file: {str(e)}"
         )

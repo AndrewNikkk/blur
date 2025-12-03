@@ -6,8 +6,8 @@ from app.routers import auth, chat, files, profile, settings
 
 
 app = FastAPI(
-    title="File Processing API",
-    description="API for file upload, processing and chat",
+    title="Blur",
+    description="API files blur",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
