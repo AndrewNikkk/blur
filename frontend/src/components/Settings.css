@@ -1,0 +1,111 @@
+.settings-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 80px 0px 0px 0px;
+    gap: 151px;
+    position: relative;
+    width: 100%;
+    min-height: calc(100vh - 160px);
+    background: #FAFBFC;
+  }
+  
+  .settings-container {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px 33px 29px;
+    gap: 30px;
+    margin: 0 auto;
+    width: 830px;
+    height: 627px;
+    background: #FAFBFC;
+    border: 1px solid rgba(111, 111, 111, 0.4);
+    border-radius: 10px;
+    flex: none;
+    order: 1;
+    flex-grow: 0;
+  }
+  
+  .settings-title {
+    width: 86px;
+    height: 19px;
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 19px;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #000000;
+    opacity: 0.6;
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+    margin: 0;
+  }
+  
+  .settings-files {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0px;
+    gap: 26px;
+    width: 720px;
+    height: 162px;
+    background: #FAFBFC;
+    flex: none;
+    order: 1;
+    flex-grow: 0;
+  }
+  
+  .settings-file-item {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0px 20px;
+    width: 720px;
+    height: 68px;
+    background: #FFFFFF;
+    border: 1px solid rgba(111, 111, 111, 0.4);
+    border-radius: 10px;
+    flex: none;
+    flex-grow: 0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .settings-file-item:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .settings-file-item-red {
+    border: 1px solid rgba(255, 0, 0, 0.4);
+  }
+  
+  .settings-file-name {
+    width: 170px;
+    height: 25px;
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 21px;
+    line-height: 25px;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #000000;
+    opacity: 0.3;
+    flex: none;
+    order: 0;
+    flex-grow: 0;
+  }
+  
+  .settings-file-item-red .settings-file-name {
+    width: 171px;
+  }
