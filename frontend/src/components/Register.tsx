@@ -1,15 +1,43 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Register.css';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { authService } from '../services/auth';
 
 export const Register: React.FC = () => {
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
+    if (password !== confirmPassword) {
+      setError('Пароли не совпадают');
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Пароль должен быть не менее 8 символов');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await authService.register({ login, password });
+      await authService.login({ login, password });
+      navigate('/');
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Ошибка регистрации');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -20,6 +48,8 @@ export const Register: React.FC = () => {
           <h2 className="register-title">Регистрация</h2>
           
           <form className="register-form" onSubmit={handleSubmit}>
+            {error && <div className="register-error">{error}</div>}
+            
             <div className="register-fields">
               <input
                 type="text"
@@ -27,6 +57,8 @@ export const Register: React.FC = () => {
                 placeholder="Введите логин"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
+                required
+                disabled={isLoading}
               />
               <input
                 type="password"
@@ -34,6 +66,9 @@ export const Register: React.FC = () => {
                 placeholder="Введите пароль"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                disabled={isLoading}
               />
               <input
                 type="password"
@@ -41,11 +76,20 @@ export const Register: React.FC = () => {
                 placeholder="Повторите пароль"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={8}
+                disabled={isLoading}
               />
             </div>
             
-            <button type="submit" className="register-button">
-              <span className="register-button-text">Зарегистрироваться</span>
+            <button 
+              type="submit" 
+              className="register-button"
+              disabled={isLoading}
+            >
+              <span className="register-button-text">
+                {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
+              </span>
             </button>
           </form>
         </div>
