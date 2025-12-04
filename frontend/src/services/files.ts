@@ -66,4 +66,17 @@ export const fileService = {
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   },
+
+  async viewFile(fileId: number): Promise<void> {
+    const token = localStorage.getItem('access_token');
+    const sessionId = localStorage.getItem('session_id');
+
+    const url = `${API_URL}/files/${fileId}/download`;
+    window.open(url, '_blank');
+  },
+
+  async saveFile(fileId: number): Promise<FileResponse> {
+    const response = await api.post(`/files/${fileId}/save`);
+    return response.data;
+  },
 };
