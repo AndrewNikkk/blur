@@ -136,7 +136,7 @@ async def get_file_info(
 @router.post("/{file_id}/process", response_model=FileResponse)
 async def process_file_endpoint(
     file_id: int,
-    session_id: str = None,
+    request: Request,  # Добавьте параметр Request для получения заголовков
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user_optional),
 ):
@@ -151,6 +151,8 @@ async def process_file_endpoint(
         if file_record.user_id != current_user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
     else:
+        # Для неавторизованных получаем session_id из заголовка
+        session_id = request.headers.get("X-Session-ID") if request else None
         if not session_id or file_record.session_id != session_id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
 
@@ -179,7 +181,7 @@ async def process_file_endpoint(
     except HTTPException:
         raise
     except Exception as e:
-        update_file_status(db, file_id, "uploaded")  # Откатываем статус при ошибке
+        update_file_status(db, file_id, "uploaded")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error processing file: {str(e)}"
         )
@@ -214,7 +216,7 @@ async def edit_file_endpoint(
         processed_path = process_file(file_record.file_path)
 
         if not processed_path:
-            update_file_status(db, file_id, file_status)  # Откатываем статус
+            update_file_status(db, file_id, file_status)
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to process file")
 
         updated_file = update_file_status(db, file_id, "edited", processed_path)

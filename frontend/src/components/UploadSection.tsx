@@ -3,6 +3,7 @@ import './UploadSection.css';
 import uploadIcon from '../assets/Upload.svg';
 import removeIcon from '../assets/RemoveIcon.svg';
 import { fileService } from '../services/files';
+import { authService } from '../services/auth';
 import type { FileResponse } from '../types';
 
 export const UploadSection: React.FC = () => {
@@ -15,6 +16,7 @@ export const UploadSection: React.FC = () => {
   const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null);
   const [viewingFileId, setViewingFileId] = useState<number | null>(null);
   const [savingAll, setSavingAll] = useState(false);
+  const isAuthenticated = authService.isAuthenticated();
 
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -34,6 +36,15 @@ export const UploadSection: React.FC = () => {
     try {
       const uploadPromises = filesArray.map(file => fileService.uploadFile(file));
       const results = await Promise.all(uploadPromises);
+      
+      // Сохраняем session_id для неавторизованных пользователей
+      if (!isAuthenticated) {
+        const fileWithSessionId = results.find(file => file.session_id);
+        if (fileWithSessionId?.session_id && !localStorage.getItem('session_id')) {
+          localStorage.setItem('session_id', fileWithSessionId.session_id);
+        }
+      }
+      
       setUploadedFiles(prev => [...prev, ...results]);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Ошибка при загрузке файла');
@@ -171,8 +182,7 @@ export const UploadSection: React.FC = () => {
       );
 
       // Сохраняем все файлы (если требуется авторизация)
-      const authService = await import('../services/auth').then(m => m.authService);
-      if (authService.isAuthenticated()) {
+      if (isAuthenticated) {
         for (const file of processedFiles) {
           try {
             await fileService.saveFile(file.id);
@@ -260,17 +270,19 @@ export const UploadSection: React.FC = () => {
                     <span className="upload-file-error">error</span>
                   ) : isSuccess ? (
                     <div className="upload-file-actions">
-                      <button
-                        className="upload-file-view-btn"
-                        onClick={() => handleViewFile(file)}
-                        disabled={loading || processing || viewingFileId === file.id || downloadingFileId === file.id}
-                        title="Просмотреть файл"
-                      >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <circle cx="12" cy="12" r="3" stroke="#6366F1" strokeWidth="2"/>
-                        </svg>
-                      </button>
+                      {isAuthenticated && (
+                        <button
+                          className="upload-file-view-btn"
+                          onClick={() => handleViewFile(file)}
+                          disabled={loading || processing || viewingFileId === file.id || downloadingFileId === file.id}
+                          title="Просмотреть файл"
+                        >
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="#6366F1" strokeWidth="2"/>
+                          </svg>
+                        </button>
+                      )}
                       <button
                         className="upload-file-download-btn"
                         onClick={() => handleDownloadFile(file)}
@@ -298,7 +310,7 @@ export const UploadSection: React.FC = () => {
         </>
       )}
 
-      {/* Кнопка Обработать, если есть файлы со статусом uploaded */}
+      {/* Кнопка Обработать, если есть незагруженные файлы */}
       {uploadedFiles.length > 0 && uploadedFiles.some(f => f.status === 'uploaded') && (
         <button
           className="upload-process-button"
@@ -309,8 +321,8 @@ export const UploadSection: React.FC = () => {
         </button>
       )}
 
-      {/* Кнопка Сохранить и скачать, если есть обработанные файлы */}
-      {hasProcessedFiles && (
+      {/* Кнопка Сохранить и скачать, если есть обработанные файлы И пользователь авторизован */}
+      {isAuthenticated && hasProcessedFiles && (
         <button
           className="upload-save-all-button"
           onClick={handleSaveAndDownloadAll}
