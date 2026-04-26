@@ -8,15 +8,15 @@ import carIcon from '../assets/Car.svg';
 
 export const InfoSection: React.FC = () => {
   return (
-    <div className="info-section">
+    <section className="info-section">
       <div className="info-icon-container">
       <img src={shieldIcon} alt="Щит" className="shield-icon-img" />
       <div className="info-icon-ellipse"></div>
       </div>
       
-      <h2 className="info-title">
+      <h1 className="info-title">
         Защитите свои конфиденциальные данные
-      </h2>
+      </h1>
       
       <p className="info-description">
         Автоматическая маскировка персональных данных на фотографиях и документах. 
@@ -52,6 +52,6 @@ export const InfoSection: React.FC = () => {
           <span className="card-text">Авто номера</span>
         </div>
       </div>
-    </div>
+    </section>
   );
 };

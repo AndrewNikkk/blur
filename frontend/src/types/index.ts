@@ -36,6 +36,14 @@ export interface User {
     processed_file_path: string | null;
     session_id: string | null;
   }
+
+  export interface PaginatedFileResponse {
+    items: FileResponse[];
+    total: number;
+    page: number;
+    per_page: number;
+    total_pages: number;
+  }
   
 
   export interface MessageResponse {
@@ -52,3 +60,11 @@ export interface User {
     created_at: string;
     messages?: MessageResponse[];
   }
+
+export interface ExternalTipResponse {
+  title: string;
+  content: string;
+  source: string;
+  fetched_at: string;
+  fallback: boolean;
+}

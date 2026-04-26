@@ -4,8 +4,16 @@ import './Register.css';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { authService } from '../services/auth';
+import { useSeo } from '../hooks/useSeo';
 
 export const Register: React.FC = () => {
+  useSeo({
+    title: 'Регистрация - Blur',
+    description: 'Страница регистрации нового пользователя в Blur.',
+    canonicalPath: '/register',
+    noindex: true,
+  });
+
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

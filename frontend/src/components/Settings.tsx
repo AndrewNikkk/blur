@@ -4,8 +4,16 @@ import './Settings.css';
 import { ProfileHeader } from './ProfileHeader';
 import { Footer } from './Footer';
 import { authService } from '../services/auth';
+import { useSeo } from '../hooks/useSeo';
 
 export const Settings: React.FC = () => {
+  useSeo({
+    title: 'Настройки профиля - Blur',
+    description: 'Закрытая страница настроек профиля пользователя.',
+    canonicalPath: '/settings',
+    noindex: true,
+  });
+
   const navigate = useNavigate();
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);

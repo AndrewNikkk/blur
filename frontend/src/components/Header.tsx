@@ -16,14 +16,14 @@ export const Header: React.FC<HeaderProps> = ({ showLoginButton = true }) => {
     <header className="header">
       <div className="header-content">
         <Link to="/" className="header-logo">
-          <img src={logoImage} alt="Logo" className="header-logo-icon" />
+          <img src={logoImage} alt="Логотип Blur" className="header-logo-icon" />
           <span className="header-logo-text">Blur</span>
         </Link>
         {isAuthenticated ? (
           <div className="header-buttons">
             <Link to="/chat" className="header-btn chat-btn">
               <div className="chat-icon-frame">
-                <img src={chatIcon} alt="Chat" className="header-chat-icon" />
+                <img src={chatIcon} alt="Иконка чата" className="header-chat-icon" />
               </div>
               <span className="chat-btn-text">Открыть чат</span>
             </Link>

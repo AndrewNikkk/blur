@@ -1,0 +1,70 @@
+.privacy-tip-card {
+  width: 100%;
+  max-width: 830px;
+  margin: 12px auto 0;
+  padding: 18px 20px;
+  border: 1px solid rgba(111, 111, 111, 0.28);
+  border-radius: 12px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.privacy-tip-title {
+  margin: 0 0 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.privacy-tip-loading,
+.privacy-tip-empty,
+.privacy-tip-error {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.privacy-tip-loading {
+  color: #4b5563;
+}
+
+.privacy-tip-empty {
+  color: #6b7280;
+}
+
+.privacy-tip-error {
+  color: #b91c1c;
+}
+
+.privacy-tip-body {
+  display: grid;
+  gap: 8px;
+}
+
+.privacy-tip-item-title {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.privacy-tip-item-content {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 22px;
+  color: #374151;
+}
+
+.privacy-tip-meta {
+  margin: 2px 0 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  line-height: 18px;
+  color: #6b7280;
+}

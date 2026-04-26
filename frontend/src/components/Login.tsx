@@ -4,8 +4,16 @@ import './Login.css';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { authService } from '../services/auth';
+import { useSeo } from '../hooks/useSeo';
 
 export const Login: React.FC = () => {
+  useSeo({
+    title: 'Вход - Blur',
+    description: 'Страница входа в сервис Blur.',
+    canonicalPath: '/login',
+    noindex: true,
+  });
+
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');

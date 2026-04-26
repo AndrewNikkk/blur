@@ -1,6 +1,8 @@
 import os
+from datetime import datetime, timedelta
+from typing import Any, List, Optional, Tuple
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, or_
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -10,9 +12,7 @@ DB_PATH = os.path.join(BASE_DIR, "app.db")
 SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
 
@@ -22,6 +22,9 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# ========== ПОЛЬЗОВАТЕЛИ ==========
 
 
 def get_user_by_login(db: Session, login: str):
@@ -63,8 +66,6 @@ def update_user_refresh_token(db: Session, user_id: int, refresh_token: str):
 
 
 def set_reset_token(db: Session, login: str, reset_token: str, expires_at):
-    # from app.model.models import User
-
     user = get_user_by_login(db, login)
     if user:
         user.reset_token = reset_token
@@ -105,23 +106,31 @@ def update_user_password(db: Session, user_id: int, new_password: str):
     return user
 
 
+# ========== ЧАТЫ ==========
+
+
 def get_or_create_chat(db: Session, user_id: int):
-    """Получить или создать чат для пользователя"""
     from app.model.models import Chat
 
     chat = db.query(Chat).filter(Chat.user_id == user_id).first()
-
     if not chat:
         chat = Chat(user_id=user_id)
         db.add(chat)
         db.commit()
         db.refresh(chat)
-
     return chat
 
 
+def get_chat_by_user(db: Session, user_id: int):
+    from app.model.models import Chat
+
+    return db.query(Chat).filter(Chat.user_id == user_id).first()
+
+
+# ========== СООБЩЕНИЯ ==========
+
+
 def create_message(db: Session, chat_id: int, content: str, role: str = "user"):
-    """Создать сообщение в чате"""
     from app.model.models import Message
 
     message = Message(chat_id=chat_id, content=content, role=role)
@@ -132,28 +141,25 @@ def create_message(db: Session, chat_id: int, content: str, role: str = "user"):
 
 
 def get_messages_by_chat(db: Session, chat_id: int):
-    """Получить все сообщения чата"""
     from app.model.models import Message
 
     return db.query(Message).filter(Message.chat_id == chat_id).order_by(Message.created_at).all()
 
 
-def get_chat_by_user(db: Session, user_id: int):
-    """Получить чат пользователя"""
-    from app.model.models import Chat
-
-    return db.query(Chat).filter(Chat.user_id == user_id).first()
+# ========== ФАЙЛЫ ==========
 
 
 def create_file(
     db: Session,
     filename: str,
     original_filename: str,
-    file_path: str,
     file_size: int,
     mime_type: str,
+    file_path: str,  # 🔹 S3 ключ (соответствует модели)
     user_id: int = None,
     session_id: str = None,
+    processed_file_path: str = None,
+    status: str = "uploaded",
 ):
     """Создать запись о файле в БД"""
     from app.model.models import File
@@ -161,10 +167,11 @@ def create_file(
     db_file = File(
         filename=filename,
         original_filename=original_filename,
-        file_path=file_path,
+        file_path=file_path,  # ✅ S3 ключ
+        processed_file_path=processed_file_path,
         file_size=file_size,
         mime_type=mime_type,
-        status="uploaded",
+        status=status,
         user_id=user_id,
         session_id=session_id,
     )
@@ -195,22 +202,75 @@ def get_files_by_session(db: Session, session_id: str):
     return db.query(File).filter(File.session_id == session_id).order_by(File.created_at.desc()).all()
 
 
-def update_file_status(db: Session, file_id: int, status: str, processed_file_path: str = None):
-    """Обновить статус файла"""
-    from datetime import datetime
-
+def get_files_paginated(
+    db: Session,
+    user_id: int,
+    search: Optional[str] = None,
+    date_filter: Optional[str] = None,
+    size_filter: Optional[str] = None,
+    sort: str = "date_desc",
+    page: int = 1,
+    per_page: int = 10,
+) -> Tuple[List, int]:
+    """Пагинация файлов с фильтрацией"""
     from app.model.models import File
 
-    file = db.query(File).filter(File.id == file_id).first()
-    if file:
-        file.status = status
-        if processed_file_path:
-            file.processed_file_path = processed_file_path
-        if status == "processed":
-            file.processed_at = datetime.utcnow()
-        db.commit()
-        db.refresh(file)
-    return file
+    query = db.query(File).filter(File.user_id == user_id, File.status.in_(["processed", "saved"]))
+
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(or_(File.original_filename.ilike(search_term), File.filename.ilike(search_term)))
+
+    if date_filter:
+        now = datetime.now()
+        today = datetime(now.year, now.month, now.day)
+
+        if date_filter == "today":
+            query = query.filter(File.created_at >= today)
+        elif date_filter == "week":
+            week_ago = today - timedelta(days=7)
+            query = query.filter(File.created_at >= week_ago)
+        elif date_filter == "month":
+            month_ago = today - timedelta(days=30)
+            query = query.filter(File.created_at >= month_ago)
+
+    if size_filter:
+        # thresholds are aligned with frontend:
+        # small < 100 KB, medium 100 KB..1 MB, large >= 1 MB
+        if size_filter == "small":
+            query = query.filter(File.file_size < 100 * 1024)
+        elif size_filter == "medium":
+            query = query.filter(File.file_size >= 100 * 1024, File.file_size < 1024 * 1024)
+        elif size_filter == "large":
+            query = query.filter(File.file_size >= 1024 * 1024)
+
+    if sort == "date_asc":
+        query = query.order_by(File.created_at.asc())
+    elif sort == "name_asc":
+        query = query.order_by(File.original_filename.asc())
+    elif sort == "name_desc":
+        query = query.order_by(File.original_filename.desc())
+    elif sort == "size_asc":
+        query = query.order_by(File.file_size.asc())
+    elif sort == "size_desc":
+        query = query.order_by(File.file_size.desc())
+    else:
+        query = query.order_by(File.created_at.desc())
+
+    total = query.count()
+    items = query.offset((page - 1) * per_page).limit(per_page).all()
+
+    return items, total
+
+
+def update_file_status(db: Session, file_id: int, status: str, processed_file_path: str = None):
+    """Обновить статус файла"""
+    kwargs = {"status": status}
+    if processed_file_path:
+        kwargs["processed_file_path"] = processed_file_path  # ✅ Исправлено
+        kwargs["processed_at"] = datetime.utcnow()
+
+    return update_file(db, file_id, **kwargs)
 
 
 def delete_file_record(db: Session, file_id: int):
@@ -224,14 +284,18 @@ def delete_file_record(db: Session, file_id: int):
     return file
 
 
-def update_file_user_id(db: Session, file_id: int, user_id: int):
-    """Обновить user_id файла (например, когда неавторизованный пользователь регистрируется)"""
+def update_file(db: Session, file_id: int, **kwargs) -> Optional[Any]:
+    """Обновляет поля файла"""
     from app.model.models import File
 
     file = db.query(File).filter(File.id == file_id).first()
-    if file:
-        file.user_id = user_id
-        file.session_id = None  # Убираем session_id, так как теперь есть user_id
-        db.commit()
-        db.refresh(file)
+    if not file:
+        return None
+
+    for key, value in kwargs.items():
+        if hasattr(file, key):
+            setattr(file, key, value)
+
+    db.commit()
+    db.refresh(file)
     return file

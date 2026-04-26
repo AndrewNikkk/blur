@@ -7,6 +7,7 @@ import { authService } from '../services/auth';
 import type { FileResponse } from '../types';
 
 export const UploadSection: React.FC = () => {
+  const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedFiles, setUploadedFiles] = useState<FileResponse[]>([]);
   const [dragActive, setDragActive] = useState(false);
@@ -27,6 +28,12 @@ export const UploadSection: React.FC = () => {
     const invalidFiles = filesArray.filter(file => !validTypes.includes(file.type));
     if (invalidFiles.length > 0) {
       setError('Поддерживаются только файлы: JPG, PNG, PDF');
+      return;
+    }
+
+    const oversizedFiles = filesArray.filter(file => file.size > MAX_FILE_SIZE_BYTES);
+    if (oversizedFiles.length > 0) {
+      setError('Файл слишком большой. Максимальный размер: 50 MB');
       return;
     }
 

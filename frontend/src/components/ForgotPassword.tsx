@@ -2,8 +2,16 @@ import React, { useState } from 'react';
 import './ForgotPassword.css';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { useSeo } from '../hooks/useSeo';
 
 export const ForgotPassword: React.FC = () => {
+  useSeo({
+    title: 'Восстановление пароля - Blur',
+    description: 'Восстановление доступа к аккаунту Blur.',
+    canonicalPath: '/forgot-password',
+    noindex: true,
+  });
+
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
