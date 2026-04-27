@@ -77,6 +77,7 @@ services:
     networks:
       - app_net
 
+
   frontend:
     image: blur-frontend:local
     build:
