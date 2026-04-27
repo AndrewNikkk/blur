@@ -25,7 +25,7 @@ def _fallback_tip() -> Dict[str, object]:
         "title": "Локальный совет по безопасности",
         "content": "Перед публикацией документов проверяйте, что персональные данные скрыты.",
         "source": "local-fallback",
-        "fetched_at": datetime.utcnow(),
+        "fetched_at": datetime.now(),
         "fallback": True,
     }
 
@@ -90,7 +90,7 @@ def fetch_privacy_tip() -> Dict[str, object]:
                 "title": "Совет из внешнего API",
                 "content": fact_text,
                 "source": "api-ninjas",
-                "fetched_at": datetime.utcnow(),
+                "fetched_at": datetime.now(),
                 "fallback": False,
             }
             _save_to_cache(normalized)

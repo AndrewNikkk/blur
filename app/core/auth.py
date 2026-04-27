@@ -2,9 +2,10 @@ import os
 import secrets
 from datetime import datetime, timedelta
 
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from dotenv import load_dotenv
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 
 load_dotenv()
@@ -17,25 +18,30 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 RESET_TOKEN_EXPIRE_HOURS = 1
 
 
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+password_hasher = PasswordHasher()
 
 token_blacklist = set()
 
 
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return password_hasher.verify(hashed_password, plain_password)
+    except VerifyMismatchError:
+        return False
+    except Exception:
+        return False
 
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    return password_hasher.hash(password)
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update({"exp": expire, "type": "access"})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -44,7 +50,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 def create_refresh_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = datetime.now() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     to_encode.update({"exp": expire, "type": "refresh"})
     encoded_jwt = jwt.encode(to_encode, REFRESH_SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

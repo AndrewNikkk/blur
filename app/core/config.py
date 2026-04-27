@@ -15,9 +15,15 @@ class Settings:
     # Password reset
     RESET_TOKEN_EXPIRE_HOURS = int(os.getenv("RESET_TOKEN_EXPIRE_HOURS", "24"))
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    CORS_ORIGINS = [
+        origin.strip()
+        for origin in os.getenv("CORS_ORIGINS", "http://localhost,http://localhost:3000").split(",")
+        if origin.strip()
+    ]
 
     # S3/MinIO настройки (localhost, так как FastAPI на хосте)
     S3_ENDPOINT = os.getenv("S3_ENDPOINT", "http://localhost:9000")
+    S3_PUBLIC_ENDPOINT = os.getenv("S3_PUBLIC_ENDPOINT", "http://localhost:9000")
     S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "minioadmin")
     S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "minioadmin")
     S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "file-processor")
@@ -44,7 +50,7 @@ class Settings:
 
     # External API integration (API Ninjas)
     EXTERNAL_TIP_API_URL = os.getenv("EXTERNAL_TIP_API_URL", "https://api.api-ninjas.com/v1/facts")
-    EXTERNAL_TIP_API_KEY = os.getenv("EXTERNAL_TIP_API_KEY", "mX09DflII1RMH5kSo6qpo7QJ1fltzivjkQRLTA2A")
+    EXTERNAL_TIP_API_KEY = os.getenv("EXTERNAL_TIP_API_KEY", "")
     EXTERNAL_TIP_TIMEOUT_SEC = float(os.getenv("EXTERNAL_TIP_TIMEOUT_SEC", "3.0"))
     EXTERNAL_TIP_MAX_RETRIES = int(os.getenv("EXTERNAL_TIP_MAX_RETRIES", "2"))
     EXTERNAL_TIP_RATE_LIMIT_PER_MIN = int(os.getenv("EXTERNAL_TIP_RATE_LIMIT_PER_MIN", "30"))

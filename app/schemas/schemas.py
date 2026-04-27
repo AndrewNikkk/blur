@@ -2,18 +2,18 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 # Существующие модели (оставляем без изменений)
 class UserRegister(BaseModel):
-    login: str = Field(..., example="Bobor")
-    password: str = Field(..., min_length=8, example="password123")
+    login: str = Field(..., json_schema_extra={"example": "Bobor"})
+    password: str = Field(..., min_length=8, json_schema_extra={"example": "password123"})
 
 
 class UserLogin(BaseModel):
-    login: str = Field(..., example="Bobor")
-    password: str = Field(..., min_length=8, example="password123")
+    login: str = Field(..., json_schema_extra={"example": "Bobor"})
+    password: str = Field(..., min_length=8, json_schema_extra={"example": "password123"})
 
 
 class UserResponse(BaseModel):
@@ -21,8 +21,7 @@ class UserResponse(BaseModel):
     login: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Token(BaseModel):
@@ -36,12 +35,12 @@ class RefreshToken(BaseModel):
 
 
 class PasswordReset(BaseModel):
-    login: str = Field(..., example="Bobor")
+    login: str = Field(..., json_schema_extra={"example": "Bobor"})
 
 
 class PasswordResetConfirm(BaseModel):
     reset_token: str
-    new_password: str = Field(..., min_length=8, example="newpassword123")
+    new_password: str = Field(..., min_length=8, json_schema_extra={"example": "newpassword123"})
 
 
 class FileUpload(BaseModel):
@@ -88,8 +87,7 @@ class MessageResponse(BaseModel):
     role: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatResponse(BaseModel):
@@ -97,8 +95,7 @@ class ChatResponse(BaseModel):
     user_id: int | None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ChatWithMessages(BaseModel):
@@ -107,8 +104,7 @@ class ChatWithMessages(BaseModel):
     created_at: datetime
     messages: list[MessageResponse]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ========== НОВЫЕ МОДЕЛИ ДЛЯ ФИЛЬТРАЦИИ И CRUD ==========
@@ -145,7 +141,8 @@ class FileSort(str, Enum):
 class FileUpdate(BaseModel):
     original_filename: Optional[str] = Field(None, description="Новое название файла")
 
-    @validator("original_filename")
+    @field_validator("original_filename")
+    @classmethod
     def validate_filename(cls, v):
         if v is not None:
             if len(v) > 255:
@@ -171,8 +168,7 @@ class PaginatedFileResponse(BaseModel):
     per_page: int
     total_pages: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PresignedUrlResponse(BaseModel):

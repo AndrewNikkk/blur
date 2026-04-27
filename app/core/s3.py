@@ -1,5 +1,6 @@
 import logging
 from typing import BinaryIO, Optional
+from urllib.parse import urlsplit, urlunsplit
 
 import boto3
 from botocore.client import Config
@@ -104,6 +105,14 @@ class LazyS3Client:
                 # Supported by S3-compatible storages like MinIO.
                 params["ResponseContentDisposition"] = response_content_disposition
             url = self.client.generate_presigned_url("get_object", Params=params, ExpiresIn=expires_in)
+            # Boto3 signs with internal MinIO host (e.g. minio:9000). Browser needs a public host.
+            internal = urlsplit(settings.S3_ENDPOINT)
+            public = urlsplit(settings.S3_PUBLIC_ENDPOINT)
+            signed = urlsplit(url)
+            if internal.netloc and public.netloc and signed.netloc == internal.netloc:
+                url = urlunsplit(
+                    (public.scheme or signed.scheme, public.netloc, signed.path, signed.query, signed.fragment)
+                )
             return url
         except ClientError as e:
             error_msg = e.response.get("Error", {}).get("Message", str(e))

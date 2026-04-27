@@ -21,7 +21,6 @@ from app.core.db import (
     update_file,
     update_file_status,
 )
-from app.core.processor import process_image_with_yolo  # Импортируем обработчик
 from app.core.s3 import s3_client
 from app.model.models import User
 from app.routers.auth import get_current_user
@@ -39,6 +38,13 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/files", tags=["files"])
 security = HTTPBearer(auto_error=False)
+
+
+def process_image_with_yolo(image_bytes: bytes):
+    """Lazy proxy for processor import to keep startup lightweight and testable."""
+    from app.core.processor import process_image_with_yolo as _process_image_with_yolo
+
+    return _process_image_with_yolo(image_bytes)
 
 
 def get_current_user_optional(
@@ -518,7 +524,7 @@ async def process_file(
             file_id=file_id,
             status="processed",
             processed_file_path=processed_key,
-            processed_at=datetime.utcnow(),
+            processed_at=datetime.now(),
         )
 
         logger.info(f"✅ File {file_id} processed successfully")

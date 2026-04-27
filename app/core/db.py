@@ -3,15 +3,21 @@ from datetime import datetime, timedelta
 from typing import Any, List, Optional, Tuple
 
 from sqlalchemy import create_engine, or_
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
+
+from app.core.config import settings
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "app.db")
-SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
+DEFAULT_SQLITE_URL = f"sqlite:///{DB_PATH}"
+SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL or DEFAULT_SQLITE_URL
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+engine_kwargs = {}
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -81,7 +87,7 @@ def get_user_by_reset_token(db: Session, reset_token: str):
     from app.model.models import User
 
     user = db.query(User).filter(User.reset_token == reset_token).first()
-    if user and user.reset_token_expires and user.reset_token_expires > datetime.utcnow():
+    if user and user.reset_token_expires and user.reset_token_expires > datetime.now():
         return user
     return None
 
@@ -268,7 +274,7 @@ def update_file_status(db: Session, file_id: int, status: str, processed_file_pa
     kwargs = {"status": status}
     if processed_file_path:
         kwargs["processed_file_path"] = processed_file_path  # ✅ Исправлено
-        kwargs["processed_at"] = datetime.utcnow()
+        kwargs["processed_at"] = datetime.now()
 
     return update_file(db, file_id, **kwargs)
 
