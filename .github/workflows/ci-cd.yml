@@ -62,7 +62,9 @@ jobs:
         run: docker build -f frontend/Dockerfile.frontend -t blur-frontend:ci ./frontend
 
       - name: Validate docker compose
-        run: docker compose config
+        run: |
+          cp .env.example .env
+          docker compose config
 
   deploy:
     runs-on: ubuntu-latest
