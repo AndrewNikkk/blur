@@ -4,6 +4,7 @@ import './Register.css';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { authService } from '../services/auth';
+import { getApiErrorDetail } from '../utils/getApiErrorDetail';
 import { useSeo } from '../hooks/useSeo';
 
 export const Register: React.FC = () => {
@@ -41,8 +42,8 @@ export const Register: React.FC = () => {
       await authService.register({ login, password });
       await authService.login({ login, password });
       navigate('/');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка регистрации');
+    } catch (err: unknown) {
+      setError(getApiErrorDetail(err) || 'Ошибка регистрации');
     } finally {
       setIsLoading(false);
     }

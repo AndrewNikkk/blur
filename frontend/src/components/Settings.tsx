@@ -4,6 +4,7 @@ import './Settings.css';
 import { ProfileHeader } from './ProfileHeader';
 import { Footer } from './Footer';
 import { authService } from '../services/auth';
+import { getApiErrorDetail } from '../utils/getApiErrorDetail';
 import { useSeo } from '../hooks/useSeo';
 
 export const Settings: React.FC = () => {
@@ -67,8 +68,8 @@ export const Settings: React.FC = () => {
       setNewPassword('');
       setConfirmPassword('');
       alert('Пароль успешно изменен');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка при смене пароля');
+    } catch (err: unknown) {
+      setError(getApiErrorDetail(err) || 'Ошибка при смене пароля');
     } finally {
       setLoading(false);
     }
@@ -87,8 +88,8 @@ export const Settings: React.FC = () => {
       await authService.deleteAccount();
       navigate('/');
       alert('Аккаунт успешно удален');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка при удалении аккаунта');
+    } catch (err: unknown) {
+      setError(getApiErrorDetail(err) || 'Ошибка при удалении аккаунта');
       setLoading(false);
     }
   };

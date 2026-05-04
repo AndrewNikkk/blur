@@ -4,6 +4,7 @@ import './Login.css';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { authService } from '../services/auth';
+import { getApiErrorDetail } from '../utils/getApiErrorDetail';
 import { useSeo } from '../hooks/useSeo';
 
 export const Login: React.FC = () => {
@@ -34,8 +35,8 @@ export const Login: React.FC = () => {
     try {
       await authService.login({ login, password });
       navigate('/');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка входа. Проверьте логин и пароль.');
+    } catch (err: unknown) {
+      setError(getApiErrorDetail(err) || 'Ошибка входа. Проверьте логин и пароль.');
     } finally {
       setIsLoading(false);
     }

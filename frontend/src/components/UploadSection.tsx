@@ -5,6 +5,7 @@ import removeIcon from '../assets/RemoveIcon.svg';
 import { fileService } from '../services/files';
 import { authService } from '../services/auth';
 import type { FileResponse } from '../types';
+import { getApiErrorDetail } from '../utils/getApiErrorDetail';
 
 export const UploadSection: React.FC = () => {
   const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024;
@@ -53,8 +54,8 @@ export const UploadSection: React.FC = () => {
       }
       
       setUploadedFiles(prev => [...prev, ...results]);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка при загрузке файла');
+    } catch (err: unknown) {
+      setError(getApiErrorDetail(err) || 'Ошибка при загрузке файла');
     } finally {
       setLoading(false);
       if (fileInputRef.current) {
@@ -92,8 +93,8 @@ export const UploadSection: React.FC = () => {
     try {
       await fileService.deleteFile(fileId);
       setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка при удалении файла');
+    } catch (err: unknown) {
+      setError(getApiErrorDetail(err) || 'Ошибка при удалении файла');
     }
   };
 
@@ -141,8 +142,8 @@ export const UploadSection: React.FC = () => {
       } else {
         // alert('Файлы успешно обработаны');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка при обработке файлов');
+    } catch (err: unknown) {
+      setError(getApiErrorDetail(err) || 'Ошибка при обработке файлов');
     } finally {
       setProcessing(false);
     }
@@ -153,8 +154,8 @@ export const UploadSection: React.FC = () => {
       setViewingFileId(file.id);
       setError('');
       await fileService.viewFile(file.id);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка при просмотре файла');
+    } catch (err: unknown) {
+      setError(getApiErrorDetail(err) || 'Ошибка при просмотре файла');
     } finally {
       setViewingFileId(null);
     }
@@ -171,8 +172,8 @@ export const UploadSection: React.FC = () => {
         : file.original_filename;
 
       await fileService.downloadFile(file.id, filename);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка при скачивании файла');
+    } catch (err: unknown) {
+      setError(getApiErrorDetail(err) || 'Ошибка при скачивании файла');
     } finally {
       setDownloadingFileId(null);
     }
@@ -193,7 +194,7 @@ export const UploadSection: React.FC = () => {
         for (const file of processedFiles) {
           try {
             await fileService.saveFile(file.id);
-          } catch (err: any) {
+          } catch (err: unknown) {
             console.error(`Ошибка при сохранении файла ${file.id}:`, err);
           }
         }
@@ -214,14 +215,14 @@ export const UploadSection: React.FC = () => {
           await handleDownloadFile(file);
           // Небольшая задержка между скачиваниями
           await new Promise(resolve => setTimeout(resolve, 300));
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error(`Ошибка при скачивании файла ${file.id}:`, err);
         }
       }
 
       alert('Все файлы сохранены и скачаны');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ошибка при сохранении и скачивании файлов');
+    } catch (err: unknown) {
+      setError(getApiErrorDetail(err) || 'Ошибка при сохранении и скачивании файлов');
     } finally {
       setSavingAll(false);
     }

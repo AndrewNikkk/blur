@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { externalService } from '../services/external';
 import type { ExternalTipResponse } from '../types';
+import { getApiErrorDetail } from '../utils/getApiErrorDetail';
 import './PrivacyTipCard.css';
 
 export const PrivacyTipCard: React.FC = () => {
@@ -15,8 +16,8 @@ export const PrivacyTipCard: React.FC = () => {
         setError('');
         const response = await externalService.getPrivacyTip();
         setTip(response);
-      } catch (err: any) {
-        setError(err.response?.data?.detail || 'Не удалось загрузить внешний совет');
+      } catch (err: unknown) {
+        setError(getApiErrorDetail(err) || 'Не удалось загрузить внешний совет');
       } finally {
         setLoading(false);
       }

@@ -13,6 +13,7 @@ import leftArrow from '../assets/left-arrow.png';
 import { fileService } from '../services/files';
 import type { FileResponse } from '../types';
 import { useSeo } from '../hooks/useSeo';
+import { getApiErrorDetail } from '../utils/getApiErrorDetail';
 
 type FilterType = 'date' | 'size' | 'sort' | null;
 type DateFilterOption = 'all' | 'today' | 'week' | 'month';
@@ -130,8 +131,8 @@ export const Profile: React.FC = () => {
       setAllFiles(response.items);
       setTotalFiles(response.total);
       setTotalPages(response.total_pages || 1);
-    } catch (err: any) {
-      setError('Ошибка при загрузке файлов');
+    } catch (err: unknown) {
+      setError(getApiErrorDetail(err) || 'Ошибка при загрузке файлов');
     } finally {
       setLoading(false);
     }
@@ -223,7 +224,7 @@ export const Profile: React.FC = () => {
       setDeletingFileId(fileId);
       await fileService.deleteFile(fileId);
       await loadFiles();
-    } catch (err) {
+    } catch {
       setError('Ошибка при удалении');
     } finally {
       setDeletingFileId(null);
@@ -234,7 +235,7 @@ export const Profile: React.FC = () => {
     try {
       setDownloadingFileId(file.id);
       await fileService.downloadFile(file.id, `processed_${file.original_filename}`);
-    } catch (err) {
+    } catch {
       setError('Ошибка при скачивании');
     } finally {
       setDownloadingFileId(null);
