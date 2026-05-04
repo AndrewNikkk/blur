@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import './Profile.css';
 import { ProfileHeader } from './ProfileHeader';
@@ -66,57 +66,7 @@ export const Profile: React.FC = () => {
   // URL params для сохранения состояния
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Загрузка параметров из URL при монтировании
-  useEffect(() => {
-    const page = searchParams.get('page');
-    const perPage = searchParams.get('perPage');
-    const date = searchParams.get('date') as DateFilterOption;
-    const size = searchParams.get('size') as SizeFilterOption;
-    const sort = searchParams.get('sort') as SortOption;
-    const search = searchParams.get('search');
-
-    if (page) setCurrentPage(parseInt(page));
-    if (perPage) setItemsPerPage(parseInt(perPage));
-    
-    setActiveFilters({
-      date: (date && ['all', 'today', 'week', 'month'].includes(date)) ? date : 'all',
-      size: (size && ['all', 'small', 'medium', 'large'].includes(size)) ? size : 'all',
-      sort: (sort && ['date_desc', 'date_asc', 'name_asc', 'name_desc', 'size_desc', 'size_asc'].includes(sort)) ? sort : 'date_desc'
-    });
-    
-    if (search) setSearchQuery(search);
-  }, []);
-
-  // Обновление URL при изменении параметров
-  useEffect(() => {
-    const params: Record<string, string> = {
-      page: currentPage.toString(),
-      perPage: itemsPerPage.toString(),
-      date: activeFilters.date,
-      size: activeFilters.size,
-      sort: activeFilters.sort
-    };
-    
-    if (searchQuery) {
-      params.search = searchQuery;
-    }
-    
-    setSearchParams(params);
-  }, [currentPage, itemsPerPage, activeFilters, searchQuery]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery.trim());
-    }, 350);
-
-    return () => window.clearTimeout(timer);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    loadFiles();
-  }, [currentPage, itemsPerPage, activeFilters, debouncedSearchQuery]);
-
-  const loadFiles = async () => {
+  const loadFiles = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -136,7 +86,58 @@ export const Profile: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debouncedSearchQuery, activeFilters, currentPage, itemsPerPage]);
+
+  // Загрузка параметров из URL при монтировании
+  useEffect(() => {
+    const page = searchParams.get('page');
+    const perPage = searchParams.get('perPage');
+    const date = searchParams.get('date') as DateFilterOption;
+    const size = searchParams.get('size') as SizeFilterOption;
+    const sort = searchParams.get('sort') as SortOption;
+    const search = searchParams.get('search');
+
+    if (page) setCurrentPage(parseInt(page));
+    if (perPage) setItemsPerPage(parseInt(perPage));
+    
+    setActiveFilters({
+      date: (date && ['all', 'today', 'week', 'month'].includes(date)) ? date : 'all',
+      size: (size && ['all', 'small', 'medium', 'large'].includes(size)) ? size : 'all',
+      sort: (sort && ['date_desc', 'date_asc', 'name_asc', 'name_desc', 'size_desc', 'size_asc'].includes(sort)) ? sort : 'date_desc'
+    });
+    
+    if (search) setSearchQuery(search);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- инициализация состояния из query только при первом монтировании
+  }, []);
+
+  // Обновление URL при изменении параметров
+  useEffect(() => {
+    const params: Record<string, string> = {
+      page: currentPage.toString(),
+      perPage: itemsPerPage.toString(),
+      date: activeFilters.date,
+      size: activeFilters.size,
+      sort: activeFilters.sort
+    };
+    
+    if (searchQuery) {
+      params.search = searchQuery;
+    }
+    
+    setSearchParams(params);
+  }, [currentPage, itemsPerPage, activeFilters, searchQuery, setSearchParams]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery.trim());
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    void loadFiles();
+  }, [loadFiles]);
 
   const paginatedFiles = allFiles;
 
